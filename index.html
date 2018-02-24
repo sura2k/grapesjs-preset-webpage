@@ -3,12 +3,21 @@
   <head>
     <meta charset="utf-8">
     <title>GrapesJS Preset Webpage</title>
-    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+    <!--<link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">-->
+	<link href="dist/grapesjs/css/grapes.min.css" rel="stylesheet">
     <link href="dist/grapesjs-preset-webpage.min.css" rel="stylesheet">
+	<link href="http://grapesjs.com/stylesheets/tooltip.css" rel="stylesheet">
+	
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
     <script src="//feather.aviary.com/imaging/v3/editor.js"></script>
     <script src="https://static.filestackapi.com/v3/filestack-0.1.10.js"></script>
-    <script src="https://unpkg.com/grapesjs"></script>
+    <!--<script src="https://unpkg.com/grapesjs"></script>-->
+	<script src="dist/grapesjs/grapes.js"></script>
     <script src="dist/grapesjs-preset-webpage.min.js"></script>
+	
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	
     <style>
       body,
       html {
@@ -16,6 +25,55 @@
         margin: 0;
       }
     </style>
+	
+	<!-- Style Selector-->
+	<style>
+		#gjs-clm-appliesto-label{
+			padding: 7px 0;
+			float: left;
+		}
+		
+		#gjs-clm-appliesto-status{
+			float: right;
+		}
+		
+		.gjs-custom-btn-style{
+			background-color: rgba(255,255,255,0.15);
+			border-radius: 2px;
+			padding: 5px 6px;
+			box-shadow: 1px 1px 0 rgba(255,255,255,0.2) inset;
+			border: 1px solid rgba(0,0,0,0.15);
+			cursor: pointer;
+		}
+		
+		.gjs-custom-btn-style:hover{
+			color: red;
+		}
+		
+		.gjs-custom-btn-style:active{
+			color: inherit;
+			border: 2px solid rgba(200,200,200,0.9);
+		}
+		
+		.gjs-mdl-btn-close-style{
+			position: relative;
+			right: inherit;
+			top: inherit;
+			pacity: 1;
+			font-size: 13px;
+		}
+		
+		.gjs-no-app{
+			height: 20px;
+		}
+	</style>
+	
+	<style>
+		[data-tooltip]::after {
+           background: rgba(51, 51, 51, 0.9);
+         }
+	</style>
+	
   </head>
   <body>
 
@@ -83,19 +141,151 @@
 
 
     <script type="text/javascript">
+	  
       var editor = grapesjs.init({
         height: '100%',
         showOffsets: 1,
         noticeOnUnload: 0,
-        storageManager: { autoload: 0 },
         container: '#gjs',
         fromElement: true,
-
+		avoidInlineStyle: 1,
         plugins: ['gjs-preset-webpage'],
         pluginsOpts: {
           'gjs-preset-webpage': {}
-        }
+        },
+		canvas: {
+			styles: [
+			  'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css'
+			],
+			scripts: [
+			  'https://code.jquery.com/jquery-3.2.1.slim.min.js',
+			  'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js',
+			  'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js'
+			]
+		}
       });
+	  
+	  //Show Style Manager By Default
+	  editor.Panels.getButton('views', 'open-sm').set('active', true);
+	  
+	  //Show Borders By Default
+	  editor.Panels.getButton('options', 'sw-visibility').set('active', 1);
+	  
+	  //Button ToolTips
+	  // Add and beautify tooltips
+      [['sw-visibility', 'Show Borders'], ['preview', 'Preview'], ['fullscreen', 'Fullscreen'],
+       ['export-template', 'Export'], ['undo', 'Undo'], ['redo', 'Redo'],
+       ['gjs-open-import-webpage', 'Import'], ['canvas-clear', 'Clear canvas']]
+      .forEach(function(item) {
+        editor.Panels.getButton('options', item[0]).set('attributes', {title: item[1], 'data-tooltip-pos': 'bottom'});
+      });
+      [['open-sm', 'Style Manager'], ['open-layers', 'Layers'], ['open-blocks', 'Blocks']]
+      .forEach(function(item) {
+        editor.Panels.getButton('views', item[0]).set('attributes', {title: item[1], 'data-tooltip-pos': 'bottom'});
+      });
+      var titles = document.querySelectorAll('*[title]');
+
+      for (var i = 0; i < titles.length; i++) {
+        var el = titles[i];
+        var title = el.getAttribute('title');
+        title = title ? title.trim(): '';
+        if(!title)
+          break;
+        el.setAttribute('data-tooltip', title);
+        el.setAttribute('title', '');
+      }
+	  
+	  /*
+	  editor.editor.on('component:add', function(model) {
+		// ... eg. check if the id is already generated
+		model.set('attributes', { id: "random-"+Date.now() });
+	  });*/
+	  
+	  //addItem2();
+	  
+	  function addItem(){
+		var em = editor.editor;
+		em.refreshCanvas();
+		var sorter = editor.BlockManager.getConfig().getSorter();
+		/*
+		sorter.setDragHelper(this.el, e);*/
+		var src = editor.BlockManager.get('text');
+		var content = src.get('content');
+		sorter.setDropContent(content);
+		/*
+		sorter.startSort(this.el);*/
+		
+		var srcModel = sorter.getSourceModel(src);
+		if (srcModel && srcModel.set) {
+			srcModel.set('status', '');
+			srcModel.set('status', 'selected');
+		}
+		
+		$("iframe").contents().find(".sura").click();
+		var target = $("iframe").contents().find(".sura");
+		console.log(target);
+		
+		var created = sorter.move(target[0], src, {index:0, method: 'after'});
+		console.log(created.get('attributes').id);
+		//alert("clicked");
+		
+	  }
+	  
+	  function addItems2(){
+		var wrapperChildren = editor.DomComponents.getComponents();
+		var comp1 = wrapperChildren.add({
+		  type: 'form',
+		  style: { 'background-color': 'cyan'}
+		});
+		var comp2 = wrapperChildren.add({
+		  tagName: 'span',
+		  attributes: { title: 'Hello!'}
+		});
+		// Now let's add an other one inside first component
+		// First we have to get the collection inside. Each
+		// component has 'components' property
+		var comp1Children = comp1.get('components');
+		// Procede as before. You could also add multiple objects
+		comp1Children.add({
+		  type: 'text',
+		  content: 'Hellow',
+		});
+		comp1Children.add({
+		  type: 'input',
+		});
+		comp1Children.add({
+		  type: 'button',
+		  attributes: { id: 'submitButton'},
+		  content: 'Submit',
+		});
+	  }
+	  
+	  
+	  //Slider
+	  //set .gjs-cv-canvas, #gjs-pn-commands to width=98% give 2 for the slider button
+	  //set #gjs-pn-views and #gjs-pn-views-container width=25% has to be set
+	  //initSlider();
+	  var hide = false;
+	  function toggleSlider(){
+		if(hide){
+			$("#gjs-pn-views").css("right", "-0%"); //width=25%
+			$("#gjs-pn-views-container").css("right", "-0%"); //width=25%
+			$(".gjs-cv-canvas, #gjs-pn-commands").css("width", "75%"); //width=75%
+			$("#gjs-pn-options").css("right","30%"); //+25
+		}else{
+			$("#gjs-pn-views").css("right", "-23%"); //width=2%
+			$("#gjs-pn-views-container").css("right", "-23%"); //width=2%
+			$(".gjs-cv-canvas, #gjs-pn-commands").css("width", "98%"); //width=98%
+			$("#gjs-pn-options").css("right","5%"); //-25
+		}
+		hide = !hide;
+	  }
+	  
+	  function initSlider(){
+		$(".gjs-cv-canvas, #gjs-pn-commands").css("width","98%"); //has to be static
+		$("#gjs-pn-views, #gjs-pn-views-container").css("width","25%");
+		$("#gjs-pn-options").css("right","5%");
+	  }
     </script>
   </body>
 </html>

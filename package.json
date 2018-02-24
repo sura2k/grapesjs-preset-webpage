@@ -7,12 +7,13 @@
     "lint": "eslint src",
     "v:patch": "npm version --no-git-tag-version patch",
     "build": "npm run v:patch && webpack --env.production && npm run build:css",
+	"build-l": "webpack --env.production && npm run build:css",
     "start": "webpack-dev-server --open --progress --colors & npm run build:css -- -w",
     "build:css": "node-sass src/style/main.scss dist/grapesjs-preset-webpage.min.css --output-style compressed"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/artf/grapesjs-preset-webpage.git"
+    "url": "https://github.com/sura2k/grapesjs-preset-webpage.git"
   },
   "keywords": [
     "grapesjs",
